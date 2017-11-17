@@ -1,52 +1,39 @@
 DELIMITER $$
-CREATE PROCEDURE insert_payments(IN id int ,IN order_id int,IN payment_type varchar(50),IN discount_coupon decimal(10,2),IN payment_date DATE, IN payment_status varchar(50),IN created datetime,IN updated timestamp, IN checkout_cost decimal(10,2))
-BEGIN  
-DECLARE `flag` BOOL DEFAULT 0;
-DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET `flag` = 1;
-start transaction;
-INSERT INTO payments(id,order_id,payment_type,discount_coupon,payment_date,payment_status,created,updated,checkout_cost) VALUES(id,order_id,payment_type,discount_coupon,payment_date,payment_status,created,updated,checkout_cost);
-
-IF `flag` THEN
-    rollback;
-ELSE
-    commit;
-END IF;
-
-END$$
-
-
-
-
-DROP PROCEDURE IF EXISTS checkout_cost $$
-CREATE PROCEDURE checkout_cost()
+DROP PROCEDURE IF EXISTS checkout $$
+CREATE PROCEDURE checkout( IN user_id INT)
 
 BEGIN
 
-DECLARE total_sum  INTEGER;
-DECLARE order_count INTEGER;
-DECLARE itr INTEGER;
-DECLARE discount INTEGER;
-DECLARE pay INTEGER;
-
-set order_count = (select count(*) from orders);
-set itr=1;
-
-while(itr <= order_count) do
-
-select sum(carts.product_quantity * variants.price) into total_sum from carts,variants where carts.colour_id = variants.id and carts.user_id = itr;
-
-update orders set final_cost = total_sum where id = itr;
-
-
-set discount = 10;
-set pay = ((discount/100)*total_sum);
-set pay=(total_sum - pay);
-update payments set checkout_cost = pay where order_id =  itr   ;
-
-set itr=itr+1;
-END WHILE ;
-
-END$$
+DECLARE total_sum  INT;
+DECLARE id1 INT DEFAULT 1;
+DECLARE type varchar(50);
+DECLARE discounted_cost INT;
+DECLARE checkout_cost1 INT;
 
 
 
+select sum(carts.product_quantity * variants.price) into total_sum from carts,variants where carts.colour_id = variants.id and carts.user_id = user_id;
+
+insert into orders values(id,user_id,curDATE(),'Placed',0,curDATE(),curDATE(),curDATE());
+
+update orders set final_cost = total_sum where id = user_id;
+
+
+update variants set stock=stock- carts.product_quantity where variants.id=carts.colour_id; 
+
+
+insert into payments values(id,id1,'COD',9.99,curDATE(),'Pending',curDATE(),curDATE(),0);
+
+set discounted_cost=((10/100)*total_sum);
+set checkout_cost1= (total_sum - discounted_cost);
+update payments set checkout_cost = checkout_cost1 where order_id =user_id  ;
+
+
+
+
+ insert into order_history 
+select carts.user_id,carts.colour_id,carts.product_id,carts.product_quantity,id1,curDATE(),curDATE() from carts;
+delete from carts where user_id=user_id;
+set id1=id1+1;
+END
+$$

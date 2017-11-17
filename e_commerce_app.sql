@@ -27,9 +27,14 @@ CREATE TABLE `carts` (
   `colour_id` int(11) DEFAULT NULL,
   `product_id` int(11) DEFAULT NULL,
   `product_quantity` int(11) DEFAULT NULL,
-  `order_id` int(11) DEFAULT NULL,
   `created` datetime DEFAULT NULL,
-  `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `updated` datetime DEFAULT NULL,
+  KEY `b` (`user_id`),
+  KEY `c` (`colour_id`),
+  KEY `d` (`product_id`),
+  CONSTRAINT `d` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `b` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `c` FOREIGN KEY (`colour_id`) REFERENCES `variants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -39,7 +44,6 @@ CREATE TABLE `carts` (
 
 LOCK TABLES `carts` WRITE;
 /*!40000 ALTER TABLE `carts` DISABLE KEYS */;
-INSERT INTO `carts` VALUES (2,4,2,5,2,'2017-11-14 00:00:00','2017-11-13 18:30:00'),(3,2,1,10,3,'2017-11-14 00:00:00','2017-11-13 18:30:00'),(1,5,4,10,4,'2017-11-14 00:00:00','2017-11-13 18:30:00'),(5,3,2,5,5,'2017-11-14 00:00:00','2017-11-13 18:30:00'),(1,1,1,5,1,'2017-11-14 00:00:00','2017-11-13 18:30:00');
 /*!40000 ALTER TABLE `carts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -71,12 +75,12 @@ DROP TABLE IF EXISTS `order_history`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `order_history` (
   `user_id` int(11) DEFAULT NULL,
+  `colour_id` int(11) DEFAULT NULL,
   `product_id` int(11) DEFAULT NULL,
-  `product_quantity` int(11) NOT NULL,
+  `product_quantity` int(11) DEFAULT NULL,
   `order_id` int(11) DEFAULT NULL,
-  `created` datetime DEFAULT NULL,
-  `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `colour_id` int(11) DEFAULT NULL
+  `created` date DEFAULT NULL,
+  `updated` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -115,16 +119,18 @@ DROP TABLE IF EXISTS `orders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `orders` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) DEFAULT NULL,
-  `order_date` date DEFAULT NULL,
+  `order_date` datetime DEFAULT NULL,
   `order_status` varchar(20) DEFAULT NULL,
   `final_cost` decimal(10,2) DEFAULT NULL,
   `shipping_date` date DEFAULT NULL,
   `created` datetime DEFAULT NULL,
-  `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `updated` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `a` (`user_id`),
+  CONSTRAINT `a` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -133,7 +139,7 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,1,'2017-11-14','Placed',5750.00,'2017-11-17','2017-11-14 00:00:00','2017-11-14 14:59:55'),(2,2,'2017-11-14','Dispatched',1750.00,'2017-11-18','2017-11-14 00:00:00','2017-11-13 18:30:00'),(3,3,'2017-11-13','Placed',2800.00,'2017-11-15','2017-11-14 00:00:00','2017-11-14 15:01:33'),(4,1,'2017-11-13','Delivered',NULL,'2017-11-18','2017-11-14 00:00:00','2017-11-14 15:01:33'),(5,5,'2017-11-13','Placed',1200.00,'2017-11-16','2017-11-14 00:00:00','2017-11-13 18:30:00');
+INSERT INTO `orders` VALUES (5,1,'2017-11-17 00:00:00','Placed',0.00,'2017-11-17','2017-11-17 00:00:00','2017-11-17 00:00:00');
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -145,17 +151,19 @@ DROP TABLE IF EXISTS `payments`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `payments` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `order_id` int(11) DEFAULT NULL,
   `payment_type` varchar(50) NOT NULL,
   `discount_coupon` decimal(3,2) DEFAULT NULL,
-  `payment_date` date DEFAULT NULL,
+  `payment_date` datetime DEFAULT NULL,
   `payment_status` varchar(50) NOT NULL,
   `created` datetime DEFAULT NULL,
-  `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated` datetime DEFAULT NULL,
   `checkout_cost` decimal(10,2) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  PRIMARY KEY (`id`),
+  KEY `e` (`order_id`),
+  CONSTRAINT `e` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -164,7 +172,6 @@ CREATE TABLE `payments` (
 
 LOCK TABLES `payments` WRITE;
 /*!40000 ALTER TABLE `payments` DISABLE KEYS */;
-INSERT INTO `payments` VALUES (1,1,'COD',9.99,'2017-11-14','PENDING','2017-11-14 00:00:00','2017-11-14 15:02:27',5175.00),(2,2,'NETBANKING',9.99,'2017-11-14','RECEIVED','2017-11-14 00:00:00','2017-11-14 15:02:27',1575.00),(3,3,'NETBANKING',9.99,'2017-11-14','RECEIVED','2017-11-14 00:00:00','2017-11-14 15:02:27',2520.00),(4,4,'COD',9.99,'2017-11-14','PENDING','2017-11-14 00:00:00','2017-11-14 15:01:33',NULL),(5,5,'COD',9.99,'2017-11-14','PENDING','2017-11-14 00:00:00','2017-11-14 15:02:27',1080.00);
 /*!40000 ALTER TABLE `payments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -179,7 +186,7 @@ CREATE TABLE `products` (
   `id` int(11) NOT NULL,
   `product_name` varchar(20) NOT NULL,
   `created` datetime DEFAULT NULL,
-  `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -190,7 +197,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,'shirt','2017-11-13 00:00:00','2017-11-12 18:30:00'),(2,'skirt','2017-11-13 00:00:00','2017-11-12 18:30:00'),(3,'top','2017-11-13 00:00:00','2017-11-12 18:30:00'),(4,'shoes','2017-11-13 00:00:00','2017-11-12 18:30:00'),(5,'sweater','2017-11-13 00:00:00','2017-11-12 18:30:00');
+INSERT INTO `products` VALUES (1,'shirt','2017-11-13 00:00:00','2017-11-13 00:00:00'),(2,'skirt','2017-11-13 00:00:00','2017-11-13 00:00:00'),(3,'top','2017-11-13 00:00:00','2017-11-13 00:00:00'),(4,'shoes','2017-11-13 00:00:00','2017-11-13 00:00:00'),(5,'sweater','2017-11-13 00:00:00','2017-11-13 00:00:00');
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -210,7 +217,7 @@ CREATE TABLE `users` (
   `contact` varchar(10) NOT NULL,
   `address` varchar(50) DEFAULT NULL,
   `created` datetime DEFAULT NULL,
-  `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -222,7 +229,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'buyer','akansha@gmail.c','root','akansha','9866431315','123 Bavdhan','2017-11-10 18:11:56','2017-11-13 14:03:32'),(2,'buyer','kesari@gmail.co','root1','kesari','9866412315','Bavdhan','2017-11-10 18:15:56','2017-11-13 14:03:48'),(3,'inverntory manager','shiwani@gmail.c','root2','shiwani','9866412308','Baner','2017-11-10 18:30:56','2017-11-13 14:03:59'),(4,'buyer','shamli@gmail.co','root3','shamli','9866214308','Pashan','2017-11-10 18:32:56','2017-11-13 14:04:14'),(5,'inventory manager','aditi@gmail.com','root4','aditi','9866213608','Dighi','2017-11-10 18:35:56','2017-11-13 14:04:21');
+INSERT INTO `users` VALUES (1,'buyer','akansha@gmail.c','root','akansha','9866431315','123 Bavdhan','2017-11-10 18:11:56','2017-11-13 19:33:32'),(2,'buyer','kesari@gmail.co','root1','kesari','9866412315','Bavdhan','2017-11-10 18:15:56','2017-11-13 19:33:48'),(3,'inverntory manager','shiwani@gmail.c','root2','shiwani','9866412308','Baner','2017-11-10 18:30:56','2017-11-13 19:33:59'),(4,'buyer','shamli@gmail.co','root3','shamli','9866214308','Pashan','2017-11-10 18:32:56','2017-11-13 19:34:14'),(5,'inventory manager','aditi@gmail.com','root4','aditi','9866213608','Dighi','2017-11-10 18:35:56','2017-11-13 19:34:21');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -240,7 +247,7 @@ CREATE TABLE `variants` (
   `stock` int(11) DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL,
   `created` datetime DEFAULT NULL,
-  `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -251,7 +258,7 @@ CREATE TABLE `variants` (
 
 LOCK TABLES `variants` WRITE;
 /*!40000 ALTER TABLE `variants` DISABLE KEYS */;
-INSERT INTO `variants` VALUES (1,1,'red',10,250.00,'2017-11-13 00:00:00','2017-11-12 18:30:00'),(2,1,'black',20,280.00,'2017-11-13 00:00:00','2017-11-12 18:30:00'),(3,2,'black',20,240.00,'2017-11-13 00:00:00','2017-11-12 18:30:00'),(4,3,'black',15,350.00,'2017-11-13 00:00:00','2017-11-12 18:30:00'),(5,4,'white',10,450.00,'2017-11-13 00:00:00','2017-11-12 18:30:00'),(6,5,'blue',50,850.00,'2017-11-13 00:00:00','2017-11-12 18:30:00');
+INSERT INTO `variants` VALUES (1,1,'red',95,250.00,'2017-11-13 00:00:00','2017-11-13 00:00:00'),(2,1,'black',20,280.00,'2017-11-13 00:00:00','2017-11-13 00:00:00'),(3,2,'black',20,240.00,'2017-11-13 00:00:00','2017-11-13 00:00:00'),(4,3,'black',10,350.00,'2017-11-13 00:00:00','2017-11-13 00:00:00'),(5,4,'white',90,450.00,'2017-11-13 00:00:00','2017-11-13 00:00:00'),(6,5,'blue',50,850.00,'2017-11-13 00:00:00','2017-11-13 00:00:00');
 /*!40000 ALTER TABLE `variants` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -302,4 +309,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-11-14 20:48:27
+-- Dump completed on 2017-11-17 19:27:25
