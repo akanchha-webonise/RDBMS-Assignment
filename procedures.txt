@@ -9,7 +9,7 @@ DECLARE id1 INT DEFAULT 1;
 DECLARE type varchar(50);
 DECLARE discounted_cost INT;
 DECLARE checkout_cost1 INT;
-
+start transaction;
 
 
 select sum(carts.product_quantity * variants.price) into total_sum from carts,variants where carts.colour_id = variants.id and carts.user_id = user_id;
@@ -35,5 +35,6 @@ update payments set checkout_cost = checkout_cost1 where order_id =user_id  ;
 select carts.user_id,carts.colour_id,carts.product_id,carts.product_quantity,id1,curDATE(),curDATE() from carts;
 delete from carts where user_id=user_id;
 set id1=id1+1;
+commit;
 END
 $$
